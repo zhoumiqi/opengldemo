@@ -84,7 +84,11 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         //编译着色器并链接顶点与片元着色器生成OpenGL程序句柄
-        mProgramId = OpenGlUtils.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        //可以从glsl文件中加载着色器源码
+        String vertexShaderStr = OpenGlUtils.getShaderString(getContext(),"my_vertex.glsl");
+        String fragShaderStr = OpenGlUtils.getShaderString(getContext(),"my_frag_color.glsl");
+        mProgramId = OpenGlUtils.loadProgram(vertexShaderStr, fragShaderStr);
+//        mProgramId = OpenGlUtils.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         //通过OpenGl程序句柄查找获取顶点着色器中的位置句柄
         mPositionId = GLES20.glGetAttribLocation(mProgramId, "vPosition");
         //通过OpenGL程序句柄查找获取片元着色器中的颜色句柄

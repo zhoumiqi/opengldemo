@@ -1,8 +1,13 @@
 package com.demo.opengles;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -83,4 +88,27 @@ public class OpenGlUtils {
     }
 
 
+    public static String getShaderString(Context context, String fileName) {
+        InputStream inputStream = null;
+        StringBuilder result = new StringBuilder();
+        try {
+            inputStream = context.getAssets().open(fileName);
+            String line;
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+            while ((line = br.readLine()) != null) {
+                result.append(line).append("\r\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result.toString();
+    }
 }

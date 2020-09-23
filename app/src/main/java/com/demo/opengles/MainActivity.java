@@ -6,14 +6,18 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
-    private GLSurfaceView triangle ;
+    private TriangleView mTriangle ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        triangle = findViewById(R.id.triangle);
-//        triangle.setEGLContextClientVersion(2);
-//        triangle.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mTriangle = findViewById(R.id.triangle);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mTriangle.destroy();
     }
 }

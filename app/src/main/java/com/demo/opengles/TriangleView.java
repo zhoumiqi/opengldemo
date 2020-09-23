@@ -6,8 +6,6 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -24,6 +22,7 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
             -1.0f, 0.0f, 0.0f,//左下角
             1.0f, 0.0f, 0.0f //右下角
     };
+
     //顶点着色器
     private static final String VERTEX_SHADER = "" +
             "//根据所设置的顶点数据而插值后的顶点坐标\n" +
@@ -44,7 +43,7 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
             "gl_FragColor = vColor;" +
             "}";
     //设置三角形的颜色和透明度
-    private static final float COLOR[] = {1.0f, 0.0f, 0.0f, 1.0f};//红色不透明
+    private static final float[] COLOR = {1.0f, 0.0f, 0.0f, 1.0f};//红色不透明
 
     private int mProgramId;
     private int mColorId;
@@ -57,6 +56,7 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
     //顶点个数
     private final int VERTEX_COUNT = TRIANGLE_COORDS.length / COORDS_PER_VERTEX;
     private FloatBuffer mVertexBuffer;
+    private FloatBuffer mFragColorBuffer;
 
     public TriangleView(Context context) {
         super(context);
@@ -65,18 +65,11 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
     public TriangleView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(2);
-        //设置渲染
+        //设置渲染器
         setRenderer(this);
+        //设置渲染模式
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
-
-//    @Override
-//    public void surfaceCreated(SurfaceHolder holder) {
-//        super.surfaceCreated(holder);
-//
-//
-//
-//    }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
@@ -96,21 +89,10 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
         mPositionId = GLES20.glGetAttribLocation(mProgramId, "vPosition");
         //通过OpenGL程序句柄查找获取片元着色器中的颜色句柄
         mColorId = GLES20.glGetUniformLocation(mProgramId, "vColor");
-        //初始化顶点字节缓冲区，用于存放三角形顶点数据
-        ByteBuffer bb = ByteBuffer.allocateDirect(
-                //每个浮点数占用4个字节
-                TRIANGLE_COORDS.length * 4
-        );
-        //设置使用设备硬件的原生字节序
-        bb.order(ByteOrder.nativeOrder());
-        //从ByteBuffer中创建一个浮点缓冲区
-        mVertexBuffer = bb.asFloatBuffer();
-        //把所有坐标都添加到FloatBuffer中
-        mVertexBuffer.put(TRIANGLE_COORDS);
-        //设置buffer从第一个位置开始读
-        //因为每次调用put加入数据后position都会加1，因此要将position重置为0
-        mVertexBuffer.position(0);
-
+        //初始化顶点缓冲区
+        mVertexBuffer = OpenGlUtils.getFloatBuffer(TRIANGLE_COORDS);
+        //初始化颜色缓冲区
+        mFragColorBuffer = OpenGlUtils.getFloatBuffer(COLOR);
     }
 
     @Override
@@ -135,12 +117,11 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
         //绑定三角形坐标数据
         GLES20.glVertexAttribPointer(mPositionId, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRID, mVertexBuffer);
         //绑定颜色数据
-        GLES20.glUniform4fv(mColorId, 1, TRIANGLE_COORDS, 0);
+        GLES20.glUniform4fv(mColorId, 1, mFragColorBuffer);
         //绘制三角形
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, VERTEX_COUNT);
         //禁用指向三角形的顶点数据
         GLES20.glDisableVertexAttribArray(mPositionId);
-
 
     }
 }

@@ -94,6 +94,7 @@ public class OpenGlUtils {
         try {
             inputStream = context.getAssets().open(fileName);
             String line;
+            //此处用byte[] 读取容易出错，读取最后一行为非法字符导致shader加载失败
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
             while ((line = br.readLine()) != null) {
                 result.append(line).append("\r\n");

@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -19,8 +20,9 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
     //三角形顶点数组
     private static final float[] TRIANGLE_COORDS = {
             0.0f, 1.0f, 0.0f,//顶点
+            1.0f, 0.0f, 0.0f,//顶点
+            0.0f,-1.0f,0.0f,
             -1.0f, 0.0f, 0.0f,//左下角
-            1.0f, 0.0f, 0.0f //右下角
     };
 
     //顶点着色器
@@ -108,6 +110,8 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
     public void destroy() {
         GLES20.glDeleteProgram(mProgramId);
     }
+    //顶点索引数据
+    private byte[] index={0,1,2,3};
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -123,7 +127,17 @@ public class TriangleView extends GLSurfaceView implements GLSurfaceView.Rendere
         //绑定颜色数据
         GLES20.glUniform4fv(mColorId, 1, mFragColorBuffer);
         //绘制三角形
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, VERTEX_COUNT);
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, VERTEX_COUNT);
+        //参考：https://segmentfault.com/a/1190000015445263
+        // GL_TRIANGLES 将传入的顶点作为单独的三角形绘制，ABCDEF绘制ABC,DEF两个三角形
+        //GL_TRIANGLE_STRIP 将传入的顶点作为三角条带绘制，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
+        //GL_TRIANGLE_FAN 将传入的顶点作为扇面绘制，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
+        //glDrawArrays 绘制四边形
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, VERTEX_COUNT);
+        ByteBuffer indexBuffer = ByteBuffer.allocateDirect(index.length).put(index);
+        indexBuffer.position(0);
+        //glDrawElements 绘制四边形 GL_TRIANGLE_STRIP 是否可以实现
+        GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, VERTEX_COUNT, GLES20.GL_UNSIGNED_BYTE ,indexBuffer);
         //禁用指向三角形的顶点数据
         GLES20.glDisableVertexAttribArray(mPositionId);
 

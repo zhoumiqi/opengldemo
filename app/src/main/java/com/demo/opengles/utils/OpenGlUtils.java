@@ -1,8 +1,10 @@
-package com.demo.opengles;
+package com.demo.opengles.utils;
 
 import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
+
+import com.demo.opengles.shape.Shape;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,58 +17,61 @@ import java.nio.FloatBuffer;
 public class OpenGlUtils {
     private static final String TAG = "OpenGlUtils";
 
-    public static int loadProgram(String vertexShader, String fragmentShader) {
-        int iVShader;
-        int iFShader;
-        int iProgId;
+    public static int loadProgram(Shape<?> shape) {
+        if (shape == null) {
+            throw new IllegalArgumentException("param shape is null");
+        }
+        int vertexShaderId;
+        int fragmentShaderId;
+        int programId;
         int[] link = new int[1];
         //获取编译后的顶点着色器句柄
-        iVShader = loadShader(vertexShader, GLES20.GL_VERTEX_SHADER);
-        if (iVShader == 0) {
+        vertexShaderId = shape.getVertexId();
+        if (vertexShaderId == 0) {
             Log.e(TAG, "load program,Vertex Shader Failed");
             return 0;
         }
         //获取编译后的片元着色器句柄
-        iFShader = loadShader(fragmentShader, GLES20.GL_FRAGMENT_SHADER);
-        if (iFShader == 0) {
+        fragmentShaderId = shape.getFragmentId();
+        if (fragmentShaderId == 0) {
             Log.e(TAG, "load program,Fragment Shader Failed");
             return 0;
         }
         //创建一个Program
-        iProgId = GLES20.glCreateProgram();
+        programId = GLES20.glCreateProgram();
         //添加顶点着色器与片元着色器到program
-        GLES20.glAttachShader(iProgId, iVShader);
-        GLES20.glAttachShader(iProgId, iFShader);
+        GLES20.glAttachShader(programId, vertexShaderId);
+        GLES20.glAttachShader(programId, fragmentShaderId);
         //链接生成可执行的Program
-        GLES20.glLinkProgram(iProgId);
+        GLES20.glLinkProgram(programId);
         //获取Program句柄，并存在在link数组容器中
-        GLES20.glGetProgramiv(iProgId, GLES20.GL_LINK_STATUS, link, 0);
+        GLES20.glGetProgramiv(programId, GLES20.GL_LINK_STATUS, link, 0);
         //容错
         if (link[0] <= 0) {
             Log.e(TAG, "load program,Linking failed");
             return 0;
         }
         //删除已链接后的着色器
-        GLES20.glDeleteShader(iVShader);
-        GLES20.glDeleteShader(iFShader);
-        return iProgId;
+        GLES20.glDeleteShader(vertexShaderId);
+        GLES20.glDeleteShader(fragmentShaderId);
+        return programId;
     }
 
-    public static int loadShader(final String strSource, final int iType) {
+    public static int loadShader(final String shaderSourceString, final int shaderType) {
         int[] compiled = new int[1];
         //创建指定类型的着色器
-        int iShader = GLES20.glCreateShader(iType);
+        int shaderId = GLES20.glCreateShader(shaderType);
         //将源码添加到iShader并编译它
-        GLES20.glShaderSource(iShader, strSource);
-        GLES20.glCompileShader(iShader);
+        GLES20.glShaderSource(shaderId, shaderSourceString);
+        GLES20.glCompileShader(shaderId);
         //获取编译后的着色器句柄存在compiled 数组容器中
-        GLES20.glGetShaderiv(iShader, GLES20.GL_COMPILE_STATUS, compiled, 0);
+        GLES20.glGetShaderiv(shaderId, GLES20.GL_COMPILE_STATUS, compiled, 0);
         //容错判断
         if (compiled[0] == 0) {
-            Log.e(TAG, "Load Shader failed, Compilation " + GLES20.glGetShaderInfoLog(iShader));
+            Log.e(TAG, "Load Shader failed, Compilation " + GLES20.glGetShaderInfoLog(shaderId));
             return 0;
         }
-        return iShader;
+        return shaderId;
     }
 
     public static FloatBuffer getFloatBuffer(float[] data) {
@@ -87,7 +92,12 @@ public class OpenGlUtils {
         return floatBuffer;
     }
 
-
+    /**
+     * 从glsl文件中获取着色器源码字符串
+     * @param context 上下文
+     * @param fileName glsl文件名字(含文件后缀的文件名)
+     * @return 返回 着色器源码字符串
+     */
     public static String getShaderString(Context context, String fileName) {
         InputStream inputStream = null;
         StringBuilder result = new StringBuilder();

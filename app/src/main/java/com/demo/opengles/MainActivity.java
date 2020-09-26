@@ -2,22 +2,21 @@ package com.demo.opengles;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
-    private TriangleView mTriangle ;
+    private MyGLSurfaceView mMyGLSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mTriangle = findViewById(R.id.triangle);
+        mMyGLSurfaceView = findViewById(R.id.my_gl_surface_view);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mTriangle.destroy();
+        mMyGLSurfaceView.destroy();
     }
 }

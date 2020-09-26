@@ -15,8 +15,8 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />-->
 
-    <com.demo.opengles.TriangleView
-        android:id="@+id/triangle"
+    <com.demo.opengles.MyGLSurfaceView
+        android:id="@+id/my_gl_surface_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

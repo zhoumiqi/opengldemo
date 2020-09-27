@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.demo.opengles.MyApp;
 import com.demo.opengles.shape.Shape;
 
 import java.io.BufferedReader;
@@ -17,6 +18,12 @@ import java.nio.FloatBuffer;
 public class OpenGlUtils {
     private static final String TAG = "OpenGlUtils";
 
+    /**
+     * 加载程序
+     *
+     * @param shape 要绘制的形状
+     * @return 程序句柄
+     */
     public static int loadProgram(Shape<?> shape) {
         if (shape == null) {
             throw new IllegalArgumentException("param shape is null");
@@ -28,13 +35,13 @@ public class OpenGlUtils {
         //获取编译后的顶点着色器句柄
         vertexShaderId = shape.getVertexId();
         if (vertexShaderId == 0) {
-            Log.e(TAG, "load program,Vertex Shader Failed");
+            Log.e(TAG, "load program,vertex shader failed");
             return 0;
         }
         //获取编译后的片元着色器句柄
         fragmentShaderId = shape.getFragmentId();
         if (fragmentShaderId == 0) {
-            Log.e(TAG, "load program,Fragment Shader Failed");
+            Log.e(TAG, "load program,fragment shader failed");
             return 0;
         }
         //创建一个Program
@@ -48,7 +55,7 @@ public class OpenGlUtils {
         GLES20.glGetProgramiv(programId, GLES20.GL_LINK_STATUS, link, 0);
         //容错
         if (link[0] <= 0) {
-            Log.e(TAG, "load program,Linking failed");
+            Log.e(TAG, "load program,linking failed");
             return 0;
         }
         //删除已链接后的着色器
@@ -68,7 +75,7 @@ public class OpenGlUtils {
         GLES20.glGetShaderiv(shaderId, GLES20.GL_COMPILE_STATUS, compiled, 0);
         //容错判断
         if (compiled[0] == 0) {
-            Log.e(TAG, "Load Shader failed, Compilation " + GLES20.glGetShaderInfoLog(shaderId));
+            Log.e(TAG, "load shader failed, compilation " + GLES20.glGetShaderInfoLog(shaderId));
             return 0;
         }
         return shaderId;
@@ -92,9 +99,16 @@ public class OpenGlUtils {
         return floatBuffer;
     }
 
+    public static ByteBuffer getByteBuffer(byte[] data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length).put(data);
+        byteBuffer.position(0);
+        return byteBuffer;
+    }
+
     /**
      * 从glsl文件中获取着色器源码字符串
-     * @param context 上下文
+     *
+     * @param context  上下文
      * @param fileName glsl文件名字(含文件后缀的文件名)
      * @return 返回 着色器源码字符串
      */
@@ -122,4 +136,17 @@ public class OpenGlUtils {
         }
         return result.toString();
     }
+
+    public static float getHalfScreen() {
+        return (float) Math.min(getScreenWidth(), getScreenHeight()) / (float) 2;
+    }
+
+    public static int getScreenWidth() {
+        return MyApp.getInstance().getResources().getConfiguration().screenWidthDp;
+    }
+
+    public static int getScreenHeight() {
+        return MyApp.getInstance().getResources().getConfiguration().screenHeightDp;
+    }
+
 }

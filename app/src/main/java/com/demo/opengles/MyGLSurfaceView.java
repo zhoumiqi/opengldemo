@@ -6,8 +6,8 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import com.demo.opengles.shape.Quadrilateral;
 import com.demo.opengles.shape.Shape;
+import com.demo.opengles.shape.Square;
 import com.demo.opengles.utils.OpenGlUtils;
 
 import java.nio.ByteBuffer;
@@ -21,7 +21,8 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer {
     //    private Shape<?> mShape = new Triangle();
-    private Shape<?> mShape = new Quadrilateral();
+//    private Shape<?> mShape = new Quadrilateral();
+    private Shape<?> mShape = new Square();
     //绘制顶点的索引数据
     private byte[] index = {0, 1, 2, 3};
 
@@ -32,6 +33,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     //设置每个顶点的坐标数
     private static final int COORDS_PER_VERTEX = 3;
     //下一个顶点和上一个顶点之间的步长，以字节为单位，每个float类型变量为4字节
+    //1字节 的是 byte 、boolean
+    //2字节 的是 short 、char
+    //4字节 的是 int 、float
+    //8字节 的是 long 、double
     private final int VERTEX_STRID = COORDS_PER_VERTEX * 4;
     //顶点个数
     private final int VERTEX_COUNT = mShape.getVertexCoordinates().length / COORDS_PER_VERTEX;
@@ -89,7 +94,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onDrawFrame(GL10 gl) {
         //清空颜色缓冲求
         GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);//白色不透明
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         //设置OpenGL所要使用的程序
         GLES20.glUseProgram(mProgramId);
         //启用三角形顶点数据句柄
@@ -99,7 +104,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //绑定颜色数据 确定count参数的值
         GLES20.glUniform4fv(mColorId, 1, mFragColorBuffer);
 //        GLES20.glEnableVertexAttribArray(mColorId);
-//        GLES20.glVertexAttribPointer(mColorId, 1, GLES20.GL_FLOAT, false, 0, mFragColorBuffer);
+//        GLES20.glVertexAttribPointer(mColorId, 4, GLES20.GL_FLOAT, false, VERTEX_STRID, mFragColorBuffer);
         //绘制三角形
 //        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, VERTEX_COUNT);
         //参考：https://segmentfault.com/a/1190000015445263
@@ -108,8 +113,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //GL_TRIANGLE_FAN 将传入的顶点作为扇面绘制(fan 扇)，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
         //glDrawArrays 绘制四边形
 //        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VERTEX_COUNT);
-        ByteBuffer indexBuffer = ByteBuffer.allocateDirect(index.length).put(index);
-        indexBuffer.position(0);
+        ByteBuffer indexBuffer = OpenGlUtils.getByteBuffer(index);
         //glDrawElements 绘制四边形
         GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, VERTEX_COUNT, GLES20.GL_UNSIGNED_BYTE, indexBuffer);
         //禁用指向三角形的顶点数据

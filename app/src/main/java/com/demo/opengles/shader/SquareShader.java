@@ -6,8 +6,7 @@ import com.demo.opengles.MyApp;
 import com.demo.opengles.utils.Constants;
 import com.demo.opengles.utils.OpenGlUtils;
 
-public class QuadrilateralShader implements Shader {
-
+public class SquareShader implements Shader {
     @Override
     public int loadVertexShader() {
         return OpenGlUtils.loadShader(OpenGlUtils.getShaderString(MyApp.getInstance(), Constants.DEFAULT_VERTEX_SHADER), GLES20.GL_VERTEX_SHADER);

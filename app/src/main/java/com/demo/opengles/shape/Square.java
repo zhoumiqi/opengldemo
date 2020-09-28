@@ -33,11 +33,11 @@ public class Square extends Shape<SquareShader> {
     @Override
     public float[] getFragColor() {
         return new float[]{
-                0.0f,0.0f, 1.0f,1.0f,
-                0.0f,0.0f, 1.0f,1.0f,
-                0.0f,0.0f, 1.0f,1.0f,
-                0.0f,0.0f, 1.0f,1.0f
-        };//蓝色不透明
+                1.0f, 0.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f
+        };//混色不透明
     }
 
     @Override

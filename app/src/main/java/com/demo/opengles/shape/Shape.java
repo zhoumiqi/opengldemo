@@ -51,6 +51,29 @@ public abstract class Shape<T extends Shader> implements IShape {
     public <S> Buffer getBuffer(S[] data) {
         return null;
     }
+
+    /**
+     * 获取顶点个数
+     *
+     * @return 顶点个数
+     */
+    public abstract int getVertexCount();
+
+    /**
+     * 获取每个顶点的坐标个数
+     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））
+     *
+     * @return 每个顶点坐标个数
+     */
+    public abstract int getCoordinatesCountPerVertex();
+
+    /**
+     * 获取每个顶点元素的颜色向量个数
+     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））
+     *
+     * @return 颜色维度数
+     */
+    public abstract int getVectorCountPerFragColor();
 }
 
 

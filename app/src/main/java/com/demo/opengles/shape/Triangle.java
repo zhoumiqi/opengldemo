@@ -25,4 +25,19 @@ public class Triangle extends Shape<TriangleShader> {
                 1.0f  //a
         };//红色不透明
     }
+
+    @Override
+    public int getVertexCount() {
+        return getVertexCoordinates().length / getCoordinatesCountPerVertex();
+    }
+
+    @Override
+    public int getCoordinatesCountPerVertex() {
+        return 3;
+    }
+
+    @Override
+    public int getVectorCountPerFragColor() {
+        return 4;
+    }
 }

@@ -1,12 +1,8 @@
 package com.demo.opengles.shape;
 
-import com.demo.opengles.shader.TriangleShader;
+import com.demo.opengles.shader.TriangleWithTextureShader;
 
-/**
- * 三角形
- */
-public class Triangle extends Shape<TriangleShader> {
-
+public class TriangleWithTexture extends Shape<TriangleWithTextureShader> {
     @Override
     public float[] getVertexCoordinates() {
         return new float[]{
@@ -19,11 +15,10 @@ public class Triangle extends Shape<TriangleShader> {
     @Override
     public float[] getFragColorOrTexCoords() {
         return new float[]{
-                1.0f, //r
-                0.0f, //g
-                0.0f, //b
-                1.0f  //a
-        };//红色不透明
+                0.5f,0.0f, //顶点
+                1.0f,1.0f, //右下角
+                0.0f,1.0f  //左下角
+        };//纹理坐标(二维)
     }
 
     @Override
@@ -38,6 +33,6 @@ public class Triangle extends Shape<TriangleShader> {
 
     @Override
     public int getVectorCountPerFragColorOrTexCoord() {
-        return 4;
+        return 2;
     }
 }

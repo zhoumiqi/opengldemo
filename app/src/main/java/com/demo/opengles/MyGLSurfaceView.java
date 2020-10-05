@@ -6,10 +6,8 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import com.demo.opengles.shape.Quadrilateral;
 import com.demo.opengles.shape.Shape;
-import com.demo.opengles.shape.Square;
-import com.demo.opengles.shape.Triangle;
+import com.demo.opengles.shape.TriangleWithTexture;
 import com.demo.opengles.utils.OpenGlUtils;
 
 import java.nio.ByteBuffer;
@@ -23,11 +21,12 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer {
     private int mProgramId;
-    private int mColorId;
+    private int mColorOrTexCoordId;
     private int mPositionId;
     private Shape<?> mShape;
     private FloatBuffer mVertexBuffer;
     private FloatBuffer mFragColorBuffer;
+    private int mTextureId;
 
     public MyGLSurfaceView(Context context) {
         super(context);
@@ -40,9 +39,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         setRenderer(this);
         //设置渲染模式
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mShape = new Triangle();
-        mShape = new Quadrilateral();
-        mShape = new Square();
+//        mShape = new Triangle();
+//        mShape = new Quadrilateral();
+//        mShape = new Square();
+        mShape = new TriangleWithTexture();
     }
 
     @Override
@@ -62,11 +62,13 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //通过OpenGl程序句柄查找获取顶点着色器中的位置句柄
         mPositionId = GLES20.glGetAttribLocation(mProgramId, "vPosition");
         //通过OpenGL程序句柄查找获取片元着色器中的颜色句柄
-        mColorId = GLES20.glGetAttribLocation(mProgramId, "aColor");
+        mColorOrTexCoordId = GLES20.glGetAttribLocation(mProgramId, "aTexCoord");
         //初始化顶点缓冲区
         mVertexBuffer = OpenGlUtils.getFloatBuffer(mShape.getVertexCoordinates());
         //初始化颜色缓冲区
-        mFragColorBuffer = OpenGlUtils.getFloatBuffer(mShape.getFragColor());
+        mFragColorBuffer = OpenGlUtils.getFloatBuffer(mShape.getFragColorOrTexCoords());
+        //初始化纹理id
+        mTextureId = OpenGlUtils.getTextureId(R.drawable.flower);
     }
 
     @Override
@@ -91,6 +93,19 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     }
 
     /**
+     * 绘制纹理贴图
+     * 参考：https://blog.csdn.net/qq_36391075/article/details/81564454
+     */
+    private void drawShapeWithTexture() {
+        //设置使用的纹理编号
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        //绑定指定的纹理id
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId);
+
+    }
+
+
+    /**
      * 绘制图形
      */
     private void drawShape() {
@@ -104,14 +119,16 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //stride:指定连续顶点属性之间的偏移量。如果为0，那么顶点属性会被理解为：它们是紧密排列在一起的。初始值为0。
         //pointer:指定第一个组件在数组的第一个顶点属性中的偏移量。该数组与GL_ARRAY_BUFFER绑定，储存于缓冲区中。初始值为0；
         //int VERTEX_STRID = mShape.getCoordinatesCountPerVertex() * 4;//byte 、boolean占1字节;short 、char占2字节;int 、float占4字节;long 、double占8字节
-        GLES20.glVertexAttribPointer(mPositionId, mShape.getCoordinatesCountPerVertex(), GLES20.GL_FLOAT, false, 0, mVertexBuffer);
+        GLES20.glVertexAttribPointer(mPositionId, mShape.getCoordsCountPerVertex(), GLES20.GL_FLOAT, false, 0, mVertexBuffer);
         //3、绑定颜色数据 (必须根据颜色向量声明的类型来调用api,否则类型不正确，颜色取值赋值不对导致显示将不正常)
         //(1)如果顶点颜色用的uniform 类型修饰用以下glUniform4fv来绑定颜色数据
         //GLES20.glUniform4fv(mColorId, mShape.getVectorCountPerFragColor(), mFragColorBuffer);
         //(2)如果顶点颜色用attribute 类型修饰就用glVertexAttribPointer 来绑定颜色数据
-        GLES20.glEnableVertexAttribArray(mColorId);
-        GLES20.glVertexAttribPointer(mColorId, mShape.getVectorCountPerFragColor(), GLES20.GL_FLOAT, false, 0, mFragColorBuffer);
-        //4、绘制图形,方式1：使用glDrawArrays绘制图形
+        GLES20.glEnableVertexAttribArray(mColorOrTexCoordId);
+        GLES20.glVertexAttribPointer(mColorOrTexCoordId, mShape.getVectorCountPerFragColorOrTexCoord(), GLES20.GL_FLOAT, false, 0, mFragColorBuffer);
+        //4、绘制纹理贴图
+        drawShapeWithTexture();
+        //5、绘制图形,方式1：使用glDrawArrays绘制图形
         //mode这个参数的说明，参考：https://segmentfault.com/a/1190000015445263
         //GL_TRIANGLES 将传入的顶点作为单独的三角形绘制，ABCDEF绘制ABC,DEF两个三角形
         //GL_TRIANGLE_STRIP 将传入的顶点作为三角条带绘制(strip 带)，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
@@ -121,7 +138,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //drawElementsWithIndex();
         //5、禁用指向图形的顶点数据
         GLES20.glDisableVertexAttribArray(mPositionId);
-        GLES20.glDisableVertexAttribArray(mColorId);
+        GLES20.glDisableVertexAttribArray(mColorOrTexCoordId);
     }
 
     /**

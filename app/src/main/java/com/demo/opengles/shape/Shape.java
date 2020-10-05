@@ -61,19 +61,19 @@ public abstract class Shape<T extends Shader> implements IShape {
 
     /**
      * 获取每个顶点的坐标个数
-     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））
+     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））,纹理坐标则是2维的
      *
      * @return 每个顶点坐标个数
      */
-    public abstract int getCoordinatesCountPerVertex();
+    public abstract int getCoordsCountPerVertex();
 
     /**
-     * 获取每个顶点元素的颜色向量个数
-     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））
+     * 获取每个顶点元素的颜色向量个数或者每个纹理坐标的个数
+     * 每个顶点属性的组件数量。必须为1、2、3或者4。初始值为4。（如position是由3个（x,y,z）组成，而颜色是4个（r,g,b,a））,纹理坐标则是2维的
      *
-     * @return 颜色维度数
+     * @return 颜色维度数或者纹理坐标维度
      */
-    public abstract int getVectorCountPerFragColor();
+    public abstract int getVectorCountPerFragColorOrTexCoord();
 }
 
 

@@ -18,7 +18,7 @@ public class Quadrilateral extends Shape<QuadrilateralShader> {
     }
 
     @Override
-    public float[] getFragColor() {
+    public float[] getFragColorOrTexCoords() {
         return new float[]{
                 1.0f, //r
                 0.0f, //g
@@ -34,16 +34,16 @@ public class Quadrilateral extends Shape<QuadrilateralShader> {
 
     @Override
     public int getVertexCount() {
-        return getVertexCoordinates().length/getCoordinatesCountPerVertex();
+        return getVertexCoordinates().length/ getCoordsCountPerVertex();
     }
 
     @Override
-    public int getCoordinatesCountPerVertex() {
+    public int getCoordsCountPerVertex() {
         return 3;
     }
 
     public @Override
-    int getVectorCountPerFragColor() {
+    int getVectorCountPerFragColorOrTexCoord() {
         return 4;
     }
 }

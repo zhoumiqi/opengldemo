@@ -12,10 +12,10 @@ public interface IShape {
     float[] getVertexCoordinates();
 
     /**
-     * 获取片元颜色数据
+     * 获取片元颜色数据或纹理坐标
      *
-     * @return 颜色数据
+     * @return 颜色数据或纹理坐标
      */
-    float[] getFragColor();
+    float[] getFragColorOrTexCoords();
 
 }

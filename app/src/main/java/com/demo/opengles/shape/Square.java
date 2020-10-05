@@ -31,7 +31,7 @@ public class Square extends Shape<SquareShader> {
     }
 
     @Override
-    public float[] getFragColor() {
+    public float[] getFragColorOrTexCoords() {
         return new float[]{
                 1.0f, 0.0f, 0.0f, 1.0f,
                 0.0f, 1.0f, 0.0f, 1.0f,
@@ -47,16 +47,16 @@ public class Square extends Shape<SquareShader> {
 
     @Override
     public int getVertexCount() {
-        return getVertexCoordinates().length/getCoordinatesCountPerVertex();
+        return getVertexCoordinates().length/ getCoordsCountPerVertex();
     }
 
     @Override
-    public int getCoordinatesCountPerVertex() {
+    public int getCoordsCountPerVertex() {
         return 3;
     }
 
     @Override
-    public int getVectorCountPerFragColor() {
+    public int getVectorCountPerFragColorOrTexCoord() {
         return 4;
     }
 }

@@ -18,6 +18,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * 参考 https://www.jianshu.com/p/157c7347937e
+ * OpenGL ES 官方开发指导文档:https://github.com/KhronosGroup/OpenGL-Refpages
+ * https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
+ * API中文文档: https://blog.csdn.net/flycatdeng/article/details/82588903?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param
  */
 public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer {
     private int mProgramId;

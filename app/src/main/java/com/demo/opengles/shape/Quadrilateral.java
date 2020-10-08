@@ -33,11 +33,6 @@ public class Quadrilateral extends Shape<QuadrilateralShader> {
     }
 
     @Override
-    public int getVertexCount() {
-        return getVertexCoordinates().length/ getCoordsCountPerVertex();
-    }
-
-    @Override
     public int getCoordsCountPerVertex() {
         return 3;
     }

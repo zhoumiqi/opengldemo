@@ -46,11 +46,6 @@ public class Square extends Shape<SquareShader> {
     }
 
     @Override
-    public int getVertexCount() {
-        return getVertexCoordinates().length/ getCoordsCountPerVertex();
-    }
-
-    @Override
     public int getCoordsCountPerVertex() {
         return 3;
     }

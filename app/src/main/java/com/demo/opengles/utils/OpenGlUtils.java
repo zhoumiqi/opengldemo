@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 public class OpenGlUtils {
     private static final String TAG = "OpenGlUtils";
@@ -69,6 +70,13 @@ public class OpenGlUtils {
         return programId;
     }
 
+    /**
+     * 加载着色器
+     *
+     * @param shaderSourceString 着色器源码字符串
+     * @param shaderType         着色器类型
+     * @return 着色器ID
+     */
     public static int loadShader(final String shaderSourceString, final int shaderType) {
         int[] compiled = new int[1];
         //创建指定类型的着色器
@@ -84,30 +92,6 @@ public class OpenGlUtils {
             return 0;
         }
         return shaderId;
-    }
-
-    public static FloatBuffer getFloatBuffer(float[] data) {
-        //初始化（顶点）字节缓冲区，用于存放（三角形顶点）数据
-        ByteBuffer bb = ByteBuffer.allocateDirect(
-                //每个浮点数占用4个字节
-                data.length * 4
-        );
-        //设置使用设备硬件的原生字节序
-        bb.order(ByteOrder.nativeOrder());
-        //从ByteBuffer中创建一个浮点缓冲区
-        FloatBuffer floatBuffer = bb.asFloatBuffer();
-        //把所有坐标都添加到FloatBuffer中
-        floatBuffer.put(data);
-        //设置buffer从第一个位置开始读
-        //因为每次调用put加入数据后position都会加1，因此要将position重置为0
-        floatBuffer.position(0);
-        return floatBuffer;
-    }
-
-    public static ByteBuffer getByteBuffer(byte[] data) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length).put(data);
-        byteBuffer.position(0);
-        return byteBuffer;
     }
 
     /**
@@ -184,6 +168,39 @@ public class OpenGlUtils {
             bitmap.recycle();
         }
         return textureId;
+    }
+
+    public static FloatBuffer getFloatBuffer(float[] data) {
+        //初始化（顶点）字节缓冲区，用于存放（三角形顶点）数据
+        ByteBuffer bb = ByteBuffer.allocateDirect(
+                //每个浮点数占用4个字节
+                data.length * 4
+        );
+        //设置使用设备硬件的原生字节序
+        bb.order(ByteOrder.nativeOrder());
+        //从ByteBuffer中创建一个浮点缓冲区
+        FloatBuffer floatBuffer = bb.asFloatBuffer();
+        //把所有坐标都添加到FloatBuffer中
+        floatBuffer.put(data);
+        //设置buffer从第一个位置开始读
+        //因为每次调用put加入数据后position都会加1，因此要将position重置为0
+        floatBuffer.position(0);
+        return floatBuffer;
+    }
+
+    public static ByteBuffer getByteBuffer(byte[] data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length).put(data);
+        byteBuffer.position(0);
+        return byteBuffer;
+    }
+
+    public static ShortBuffer getShortBuffer(short[] data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length * 2);
+        byteBuffer.order(ByteOrder.nativeOrder());
+        ShortBuffer indexBuffer = byteBuffer.asShortBuffer();
+        indexBuffer.put(data);
+        indexBuffer.position(0);
+        return indexBuffer;
     }
 
     public static float getHalfScreen() {

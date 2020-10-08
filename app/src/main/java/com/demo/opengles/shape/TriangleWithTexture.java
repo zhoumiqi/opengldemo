@@ -22,11 +22,6 @@ public class TriangleWithTexture extends Shape<TriangleWithTextureShader> {
     }
 
     @Override
-    public int getVertexCount() {
-        return getVertexCoordinates().length / getCoordsCountPerVertex();
-    }
-
-    @Override
     public int getCoordsCountPerVertex() {
         return 3;
     }
@@ -34,5 +29,10 @@ public class TriangleWithTexture extends Shape<TriangleWithTextureShader> {
     @Override
     public int getVectorCountPerFragColorOrTexCoord() {
         return 2;
+    }
+
+    @Override
+    public boolean haveTextureAttr() {
+        return true;
     }
 }

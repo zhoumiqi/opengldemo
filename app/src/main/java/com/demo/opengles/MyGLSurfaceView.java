@@ -3,15 +3,20 @@ package com.demo.opengles;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
+import com.demo.opengles.shape.Cube;
+import com.demo.opengles.shape.Quadrilateral;
 import com.demo.opengles.shape.Shape;
+import com.demo.opengles.shape.Square;
+import com.demo.opengles.shape.Triangle;
 import com.demo.opengles.shape.TriangleWithTexture;
 import com.demo.opengles.utils.OpenGlUtils;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -26,10 +31,15 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     private int mProgramId;
     private int mColorOrTexCoordId;
     private int mPositionId;
+    private int mMatrixId;
     private Shape<?> mShape;
     private FloatBuffer mVertexBuffer;
-    private FloatBuffer mFragColorBuffer;
+    private FloatBuffer mFragColorOrTextureCoordBuffer;
     private int mTextureId;
+
+    private float[] mViewMatrix;
+    private float[] mProjectMatrix;
+    private float[] mMVPMatrix;
 
     public MyGLSurfaceView(Context context) {
         super(context);
@@ -45,7 +55,14 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 //        mShape = new Triangle();
 //        mShape = new Quadrilateral();
 //        mShape = new Square();
-        mShape = new TriangleWithTexture();
+//        mShape = new TriangleWithTexture();
+        mShape = new Cube();
+
+        if (mShape.haveMatrixUniform()) {
+            mViewMatrix = new float[16];
+            mProjectMatrix = new float[16];
+            mMVPMatrix = new float[16];
+        }
     }
 
     @Override
@@ -60,28 +77,42 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        if (mShape.needEnableDepthTest()) {
+            //开启深度测试
+            GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        }
         //编译着色器并链接顶点与片元着色器生成OpenGL程序句柄
         mProgramId = OpenGlUtils.loadProgram(mShape);
         //通过OpenGl程序句柄查找获取顶点着色器中的位置句柄
-        mPositionId = GLES20.glGetAttribLocation(mProgramId, "vPosition");
-        //通过OpenGL程序句柄查找获取片元着色器中的颜色句柄
-        mColorOrTexCoordId = GLES20.glGetAttribLocation(mProgramId, "aTexCoord");
+        mPositionId = GLES20.glGetAttribLocation(mProgramId, mShape.getPositionAttrName());
+        //通过OpenGL程序句柄查找获取片元着色器中的颜色或纹理坐标句柄
+        if (mShape.haveTextureAttr()) {
+            mColorOrTexCoordId = GLES20.glGetAttribLocation(mProgramId, mShape.getTextureCoordAttrName());
+        } else {
+            mColorOrTexCoordId = GLES20.glGetAttribLocation(mProgramId, mShape.getColorAttrName());
+        }
+        if (mShape.haveMatrixUniform()) {
+            //通过OpenGL程序句柄查找顶点着色器中的矩阵变换句柄
+            mMatrixId = GLES20.glGetUniformLocation(mProgramId, mShape.getMatrixUniformName());
+        }
         //初始化顶点缓冲区
         mVertexBuffer = OpenGlUtils.getFloatBuffer(mShape.getVertexCoordinates());
-        //初始化颜色缓冲区
-        mFragColorBuffer = OpenGlUtils.getFloatBuffer(mShape.getFragColorOrTexCoords());
-        //初始化纹理id
-        mTextureId = OpenGlUtils.getTextureId(R.drawable.flower);
+        //初始化颜色or纹理坐标缓冲区
+        mFragColorOrTextureCoordBuffer = OpenGlUtils.getFloatBuffer(mShape.getFragColorOrTexCoords());
+        if (mShape.haveTextureAttr()) {
+            //初始化纹理id
+            mTextureId = OpenGlUtils.getTextureId(R.drawable.qianxun);
+        }
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        //设置视口
-        GLES20.glViewport(0, 0, width, height);
-    }
-
-    public void destroy() {
-        GLES20.glDeleteProgram(mProgramId);
+        if (mShape.haveMatrixUniform()) {
+            setMatrix(width, height);
+        } else {
+            //设置视口
+            GLES20.glViewport(0, 0, width, height);
+        }
     }
 
     @Override
@@ -91,8 +122,33 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         //设置OpenGL所要使用的程序
         GLES20.glUseProgram(mProgramId);
+        if (mShape.haveMatrixUniform()) {
+            //指定vMatrix的值(location:指定要修改的统一变量的位置。 count:指定要修改的元素数。 如果目标统一变量不是数组，则此值应为1;如果是数组，则应为1或更大。transpose:指定在将值加载到统一变量时是否转置矩阵。 必须是GL_FALSE。)
+            GLES20.glUniformMatrix4fv(mMatrixId, 1, false, mMVPMatrix, 0);
+        }
         //绘制图形
         drawShape();
+    }
+
+    public void destroy() {
+        GLES20.glDeleteProgram(mProgramId);
+    }
+
+    /**
+     * 设置矩阵
+     *
+     * @param width  宽度
+     * @param height 高度
+     */
+    private void setMatrix(float width, int height) {
+        //计算宽高比
+        float ratio = width / height;
+        //设置透视投影 (根据六个剪切平面定义投影矩阵)
+        Matrix.frustumM(mProjectMatrix, 0, -ratio, ratio, -1, 1, 3, 20);
+        //设置相机位置
+        Matrix.setLookAtM(mViewMatrix, 0, 5.0f, 5.0f, 10.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        //计算变换矩阵
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mViewMatrix, 0);
     }
 
     /**
@@ -104,7 +160,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         //绑定指定的纹理id
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId);
-
     }
 
 
@@ -128,18 +183,23 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //GLES20.glUniform4fv(mColorId, mShape.getVectorCountPerFragColor(), mFragColorBuffer);
         //(2)如果顶点颜色用attribute 类型修饰就用glVertexAttribPointer 来绑定颜色数据
         GLES20.glEnableVertexAttribArray(mColorOrTexCoordId);
-        GLES20.glVertexAttribPointer(mColorOrTexCoordId, mShape.getVectorCountPerFragColorOrTexCoord(), GLES20.GL_FLOAT, false, 0, mFragColorBuffer);
+        GLES20.glVertexAttribPointer(mColorOrTexCoordId, mShape.getVectorCountPerFragColorOrTexCoord(), GLES20.GL_FLOAT, false, 0, mFragColorOrTextureCoordBuffer);
         //4、绘制纹理贴图
-        drawShapeWithTexture();
-        //5、绘制图形,方式1：使用glDrawArrays绘制图形
-        //mode这个参数的说明，参考：https://segmentfault.com/a/1190000015445263
-        //GL_TRIANGLES 将传入的顶点作为单独的三角形绘制，ABCDEF绘制ABC,DEF两个三角形
-        //GL_TRIANGLE_STRIP 将传入的顶点作为三角条带绘制(strip 带)，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
-        //GL_TRIANGLE_FAN 将传入的顶点作为扇面绘制(fan 扇)，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mShape.getVertexCount());
-        //4、绘制图形,方式2：使用使用glDrawElements 绘制图形
-        //drawElementsWithIndex();
-        //5、禁用指向图形的顶点数据
+        if (mShape.haveTextureAttr()) {
+            drawShapeWithTexture();
+        }
+        if (mShape.drawWithSpecifiedIndex()) {
+            //5、绘制图形,方式2：使用使用glDrawElements 绘制图形
+            drawElementsWithIndex();
+        } else {
+            //5、绘制图形,方式1：使用glDrawArrays绘制图形
+            //mode这个参数的说明，参考：https://segmentfault.com/a/1190000015445263
+            //GL_TRIANGLES 将传入的顶点作为单独的三角形绘制，ABCDEF绘制ABC,DEF两个三角形
+            //GL_TRIANGLE_STRIP 将传入的顶点作为三角条带绘制(strip 带)，ABCDEF绘制ABC,BCD,CDE,DEF四个三角形
+            //GL_TRIANGLE_FAN 将传入的顶点作为扇面绘制(fan 扇)，ABCDEF绘制ABC、ACD、ADE、AEF四个三角形
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mShape.getVertexCount());
+        }
+        //6、禁用指向图形的顶点数据
         GLES20.glDisableVertexAttribArray(mPositionId);
         GLES20.glDisableVertexAttribArray(mColorOrTexCoordId);
     }
@@ -150,9 +210,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
      */
     private void drawElementsWithIndex() {
         //设置绘制顶点的索引数据(绘制顶点顺序的下标)
-        byte[] index = {0, 1, 2, 3};
-        ByteBuffer indexBuffer = OpenGlUtils.getByteBuffer(index);
+//        byte[] index = {0, 1, 2, 3};
+//        ByteBuffer indexBuffer = OpenGlUtils.getByteBuffer(index);
+        ShortBuffer indexBuffer = OpenGlUtils.getShortBuffer(mShape.getIndexData());
         //绘制图形
-        GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, mShape.getVertexCount(), GLES20.GL_UNSIGNED_BYTE, indexBuffer);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLE_STRIP, mShape.getIndexData().length, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
     }
 }

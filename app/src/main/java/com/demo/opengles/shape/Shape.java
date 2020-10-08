@@ -1,6 +1,7 @@
 package com.demo.opengles.shape;
 
 import com.demo.opengles.shader.Shader;
+import com.demo.opengles.utils.Constants;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -57,7 +58,9 @@ public abstract class Shape<T extends Shader> implements IShape {
      *
      * @return 顶点个数
      */
-    public abstract int getVertexCount();
+    public int getVertexCount() {
+        return getVertexCoordinates().length / getCoordsCountPerVertex();
+    }
 
     /**
      * 获取每个顶点的坐标个数
@@ -74,6 +77,88 @@ public abstract class Shape<T extends Shader> implements IShape {
      * @return 颜色维度数或者纹理坐标维度
      */
     public abstract int getVectorCountPerFragColorOrTexCoord();
+
+    /**
+     * 获取绘制顺序的索引数组
+     *
+     * @return 索引数组
+     */
+    public short[] getIndexData() {
+        return new short[0];
+    }
+
+    /**
+     * 获取顶点坐标属性名
+     *
+     * @return 顶点坐标属性名
+     */
+    public String getPositionAttrName() {
+        return Constants.DEFAULT_POSITION_ATTR_NAME;
+    }
+
+    /**
+     * 获取片元颜色属性名
+     *
+     * @return 片元颜色属性名
+     */
+    public String getColorAttrName() {
+        return Constants.DEFAULT_COLOR_ATTR_NAME;
+    }
+
+    /**
+     * 获取纹理坐标属性名
+     *
+     * @return 纹理坐标属性名
+     */
+    public String getTextureCoordAttrName() {
+        return Constants.DEFAULT_TEXTURE_COORD_ATTR_NAME;
+    }
+
+    /**
+     * 获取矩阵统一变量名
+     *
+     * @return 矩阵统一变量名
+     */
+    public String getMatrixUniformName() {
+        return Constants.DEFAULT_MATRIX_UNIFORM_NAME;
+    }
+
+    /**
+     * 是否有纹理坐标属性
+     *
+     * @return 默认false
+     */
+    public boolean haveTextureAttr() {
+        return false;
+    }
+
+    /**
+     * 是否有矩阵统一变量
+     *
+     * @return 默认false
+     */
+    public boolean haveMatrixUniform() {
+        return false;
+    }
+
+    /**
+     * 是否开启深度测试
+     *
+     * @return 默认false
+     */
+    public boolean needEnableDepthTest() {
+        return false;
+    }
+
+    /**
+     * 是否使用指定索引顺序绘制
+     *
+     * @return 默认false
+     */
+    public boolean drawWithSpecifiedIndex() {
+        return false;
+    }
+
 }
 
 

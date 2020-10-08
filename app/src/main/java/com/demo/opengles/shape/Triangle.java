@@ -27,11 +27,6 @@ public class Triangle extends Shape<TriangleShader> {
     }
 
     @Override
-    public int getVertexCount() {
-        return getVertexCoordinates().length / getCoordsCountPerVertex();
-    }
-
-    @Override
     public int getCoordsCountPerVertex() {
         return 3;
     }

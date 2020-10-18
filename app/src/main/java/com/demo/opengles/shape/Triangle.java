@@ -22,6 +22,14 @@ public class Triangle extends Shape<TriangleShader> {
                 1.0f, //r
                 0.0f, //g
                 0.0f, //b
+                0.5f,  //a
+                1.0f, //r
+                0.0f, //g
+                0.0f, //b
+                0.5f,  //a
+                1.0f, //r
+                0.0f, //g
+                0.0f, //b
                 1.0f  //a
         };//红色不透明
     }
@@ -34,5 +42,10 @@ public class Triangle extends Shape<TriangleShader> {
     @Override
     public int getVectorCountPerFragColorOrTexCoord() {
         return 4;
+    }
+
+    @Override
+    public boolean enableColorBlend() {
+        return true;
     }
 }

@@ -2,6 +2,10 @@ package com.demo.opengles.shape;
 
 import com.demo.opengles.shader.TriangleWithTextureShader;
 
+/**
+ * 绘制带有纹理的三角形
+ * 参考：https://blog.csdn.net/qq_36391075/article/details/81564454
+ */
 public class TriangleWithTexture extends Shape<TriangleWithTextureShader> {
     @Override
     public float[] getVertexCoordinates() {

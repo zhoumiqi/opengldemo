@@ -159,6 +159,14 @@ public abstract class Shape<T extends Shader> implements IShape {
         return false;
     }
 
+    /**
+     * 是否开启颜色混合
+     * @return 默认false 不开启
+     */
+    public boolean enableColorBlend(){
+        return false;
+    }
+
 }
 
 

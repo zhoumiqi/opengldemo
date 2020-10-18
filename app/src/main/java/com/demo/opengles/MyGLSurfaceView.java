@@ -7,12 +7,8 @@ import android.opengl.Matrix;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import com.demo.opengles.shape.Cube;
-import com.demo.opengles.shape.Quadrilateral;
 import com.demo.opengles.shape.Shape;
-import com.demo.opengles.shape.Square;
 import com.demo.opengles.shape.Triangle;
-import com.demo.opengles.shape.TriangleWithTexture;
 import com.demo.opengles.utils.OpenGlUtils;
 
 import java.nio.FloatBuffer;
@@ -52,11 +48,11 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         setRenderer(this);
         //设置渲染模式
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-//        mShape = new Triangle();
+        mShape = new Triangle();
 //        mShape = new Quadrilateral();
 //        mShape = new Square();
 //        mShape = new TriangleWithTexture();
-        mShape = new Cube();
+//        mShape = new Cube();
 
         if (mShape.haveMatrixUniform()) {
             mViewMatrix = new float[16];
@@ -118,16 +114,37 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     @Override
     public void onDrawFrame(GL10 gl) {
         //清空颜色缓冲区
-        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);//白色不透明
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//白色不透明
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         //设置OpenGL所要使用的程序
         GLES20.glUseProgram(mProgramId);
+        if (mShape.enableColorBlend()) {
+            setColorBlend();
+        }
         if (mShape.haveMatrixUniform()) {
             //指定vMatrix的值(location:指定要修改的统一变量的位置。 count:指定要修改的元素数。 如果目标统一变量不是数组，则此值应为1;如果是数组，则应为1或更大。transpose:指定在将值加载到统一变量时是否转置矩阵。 必须是GL_FALSE。)
             GLES20.glUniformMatrix4fv(mMatrixId, 1, false, mMVPMatrix, 0);
         }
         //绘制图形
         drawShape();
+    }
+
+    /**
+     * 开启颜色混合
+     * 最终颜色=(目标颜色目标因子)@(源颜色源因子)，其中@表示一种运算符。
+     * 混合参数说明参考
+     * https://www.jianshu.com/p/7fd5b26e984c
+     * https://www.cnblogs.com/msnow/p/5241211.html
+     */
+    private void setColorBlend() {
+        //开启颜色混合
+        GLES20.glEnable(GLES20.GL_BLEND);
+        //设置源因子和目标因子
+        //sfactor 指定红绿蓝和 alpha 源混合因子如何计算。初始值为GL_ONE。
+        //dfactor 指定红绿蓝和 alpha 目标混合因子如何计算。初始值为GL_ZERO。
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        //设置混合方程式
+        GLES20.glBlendEquation(GLES20.GL_BLEND_SRC_ALPHA);
     }
 
     public void destroy() {
@@ -202,6 +219,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         //6、禁用指向图形的顶点数据
         GLES20.glDisableVertexAttribArray(mPositionId);
         GLES20.glDisableVertexAttribArray(mColorOrTexCoordId);
+        //7、关闭颜色混合
+        if (mShape.enableColorBlend()) {
+            GLES20.glDisable(GLES20.GL_BLEND);
+        }
     }
 
     /**
